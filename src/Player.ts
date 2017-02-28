@@ -41,7 +41,7 @@ export class Player {
         //         this.raise(this.gameState.current_buy_in - this.ourPlayer.bet + this.gameState.minimum_raise);
         //     }
         // } else {
-        if (this.gameState.round < 100) {
+        if (this.gameState.players.length > 3) {
             this.fold();
         }
         if (cardValue <= 10) {
