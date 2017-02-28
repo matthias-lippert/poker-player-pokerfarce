@@ -45,7 +45,7 @@ export class Player {
     }
 
     public check() {
-        this.betCallback(this.gameState.minimum_raise);
+        this.betCallback(this.gameState.current_buy_in - this.ourPlayer.bet);
     }
 
     public fold() {
