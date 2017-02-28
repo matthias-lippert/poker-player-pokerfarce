@@ -44,13 +44,6 @@ export class Player {
 
     private getOurPlayer(): IPlayer {
         return this.gameState.players[this.gameState.in_action];
-        // return players.filter((player: IPlayer) => {
-        //     if (player.hole_cards && player.hole_cards.length > 0) {
-        //         return true;
-        //     } else {
-        //         return false;
-        //     }
-        // })
     }
 
     private getValueByColor(cards: Array<ICard>): number {
@@ -64,6 +57,14 @@ export class Player {
                     value += 10;
                 }
             }
+        }
+        return value;
+    }
+
+    private getValueByPair(cards: Array<ICard>): number {
+        let value: number = 0;
+        if (cards[0].rank === cards[1].rank) {
+            value = 15;
         }
         return value;
     }
@@ -91,6 +92,7 @@ export class Player {
         }
 
         handValue += this.getValueByColor(this.ourPlayer.hole_cards);
+        handValue += this.getValueByPair(this.ourPlayer.hole_cards);
 
         return handValue;
     }
