@@ -20,9 +20,14 @@ export class Player {
     }
 
     play() {
-        if (this.handValues <= 10) {
+        let cardValue = this.handValues;
+        // if (this.gameState.community_cards && this.gameState.community_cards.length > 0) {
+        // value = this.calculateHandAndCommunityValue();
+        // }
+
+        if (cardValue <= 10) {
             this.fold();
-        } else if (this.handValues >= 40) {
+        } else if (cardValue >= 40) {
             this.raise(Math.min(200, this.ourPlayer.stack));
         } else if (cardValue >= 25) {
             this.raise(this.gameState.current_buy_in - this.ourPlayer.bet + this.gameState.minimum_raise);
@@ -119,7 +124,41 @@ export class Player {
 
         return handValue;
     }
+
+    private calculateHandAndCommunityValue(): number {
+        let value: number = 0;
+        let hand = {
+            isFlush: this.isFlush(this.gameState.community_cards, this.ourPlayer.hole_cards),
+            isStraight: this.isStraight(this.gameState.community_cards)
+        };
+        return 0;
+    }
+
+    private isFlush(community_cards: Array<ICard>, hole_cards: Array<ICard>): boolean {
+        let cardColors = {
+            clubs: 0, spades: 0, hearts: 0, diamonds: 0
+        };
+        let returnValue: boolean = false;
+
+        for (let card of community_cards) {
+            cardColors[card.suit] = cardColors[card.suit] + 1;
+        }
+        for (let card of hole_cards) {
+            cardColors[card.suit] = cardColors[card.suit] + 1;
+        }
+
+        for (let cardColor in cardColors) {
+            if (cardColors[cardColor] === 5 || cardColors[cardColor] + (5 - community_cards.length) === 5) {
+                returnValue = true;
+                break;
+            }
+        }
+        return returnValue;
+    }
+
+    private isStraight(community_cards: Array<ICard>): boolean {
+        return false;
+    }
 }
-;
 
 export default Player;
