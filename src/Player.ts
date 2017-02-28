@@ -13,7 +13,7 @@ export class Player {
         this.ourPlayer = this.getOurPlayer();
         this.handValues = this.calculateHandValue();
 
-        let reduceValue = Math.min(0, Math.floor(this.gameState.current_buy_in / this.ourPlayer.stack * 10));
+        let reduceValue = Math.min(0, Math.floor(this.gameState.current_buy_in / this.ourPlayer.stack * 5));
         this.handValues -= reduceValue;
 
         this.play();
