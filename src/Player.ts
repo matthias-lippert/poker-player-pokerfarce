@@ -2,7 +2,7 @@ import {IGameState, IPlayer, ICard} from "./models/GameState";
 export class Player {
     private ourPlayer: IPlayer;
     private handValues: number;
-    private betCallback: any;
+    private betCallback: Function;
     private gameState:IGameState;
 
     public betRequest(gameState: IGameState, betCallback: (bet: number) => void): void {
@@ -35,11 +35,11 @@ export class Player {
     }
 
     public check() {
-        this.betCallback(this.gameState.minimum_raise)
+        this.betCallback(this.gameState.minimum_raise);
     }
 
     public fold() {
-        this.betCallback(0)
+        this.betCallback(0);
     }
 
     private getOurPlayer(): IPlayer {
@@ -53,8 +53,24 @@ export class Player {
         // })
     }
 
+    private getValueByColor(cards: Array<ICard>): number {
+        let value: number = 0;
+        let handColor = "";
+        for (let card of cards) {
+            if (handColor === "")  {
+                handColor = card.suit;
+            } else {
+                if (handColor === card.suit) {
+                    value += 30;
+                }
+            }
+        }
+        return value;
+    }
+
     private calculateHandValue() {
         let handValue = 0;
+        // clubs,spades,hearts,diamonds
         for (let card of this.ourPlayer.hole_cards) {
             switch (card) {
                 case "J":
@@ -73,6 +89,9 @@ export class Player {
                     handValue += parseInt(<any>card.rank) - 1;
             }
         }
+
+        handValue += this.getValueByColor(this.ourPlayer.hole_cards);
+
         return handValue;
     }
 }
