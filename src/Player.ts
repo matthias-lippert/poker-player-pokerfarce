@@ -53,15 +53,8 @@ export class Player {
 
     private getValueByColor(cards: Array<ICard>): number {
         let value: number = 0;
-        let handColor = "";
-        for (let card of cards) {
-            if (handColor === "") {
-                handColor = card.suit;
-            } else {
-                if (handColor === card.suit) {
-                    value += 10;
-                }
-            }
+        if (cards[0].suit === cards[1].suit) {
+            value = 10;
         }
         return value;
     }
