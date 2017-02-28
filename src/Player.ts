@@ -25,7 +25,7 @@ export class Player {
         } else if (this.handValues >= 40) {
             this.raise(Math.min(200, this.ourPlayer.stack));
         } else if (this.handValues >= 25) {
-            this.raise(this.gameState.minimum_raise);
+            this.raise(this.gameState.current_buy_in + this.gameState.minimum_raise);
         } else {
             this.check();
         }
