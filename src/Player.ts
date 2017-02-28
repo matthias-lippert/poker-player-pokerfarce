@@ -61,7 +61,7 @@ export class Player {
                 handColor = card.suit;
             } else {
                 if (handColor === card.suit) {
-                    value += 30;
+                    value += 10;
                 }
             }
         }
