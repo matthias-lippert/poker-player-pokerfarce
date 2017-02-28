@@ -39,9 +39,13 @@ export class Player {
     }
 
     private getOurPlayer(players: Array<IPlayer>): IPlayer {
-        return players.filter((player: IPlayer) =>
-            player.hole_cards
-        )
+        return players.filter((player: IPlayer) => {
+            if (player.hole_cards && player.hole_cards.length > 0) {
+                return true;
+            } else {
+                return false;
+            }
+        })
     }
 
     private calculateHandValue() {
