@@ -19,6 +19,8 @@ export class Player {
     play() {
         if (this.handValues <= 10) {
             this.fold();
+        } else if (this.handValues >= 40) {
+            this.raise(Math.min(200, this.ourPlayer.stack));
         } else if (this.handValues >= 25) {
             this.raise(this.gameState.minimum_raise);
         } else {
