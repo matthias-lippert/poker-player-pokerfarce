@@ -21,19 +21,38 @@ export class Player {
 
     play() {
         let cardValue = this.handValues;
-        // if (this.gameState.community_cards && this.gameState.community_cards.length > 0) {
-        // value = this.calculateHandAndCommunityValue();
-        // }
+        let allCardValue: number;
+        // value += 90 * hand.flush;
+        // value += 80 * hand.forOfAKind;
+        // value += 50 * hand.straight;
+        // value += 40 * hand.tripple;
+        // value += 30 * hand.twoPair;
+        // value += 20 * hand.pair;
+        if (this.gameState.community_cards && this.gameState.community_cards.length > 0) {
+            allCardValue = this.calculateHandAndCommunityValue();
 
-        if (cardValue <= 10) {
-            this.fold();
-        } else if (cardValue >= 40) {
-            this.raise(Math.min(200, this.ourPlayer.stack));
-        } else if (cardValue >= 25) {
-            this.raise(this.gameState.current_buy_in - this.ourPlayer.bet + this.gameState.minimum_raise);
+            if (allCardValue < 10) {
+                this.fold();
+            } else if (allCardValue < 30) {
+                this.check();
+            } else if (allCardValue >= 90 ) {
+                this.raise(this.ourPlayer.stack);
+            } else {
+                this.raise(this.gameState.current_buy_in - this.ourPlayer.bet + this.gameState.minimum_raise);
+            }
         } else {
-            this.check();
+            if (cardValue <= 10) {
+                this.fold();
+            } else if (cardValue >= 40) {
+                this.raise(Math.min(200, this.ourPlayer.stack));
+            } else if (cardValue >= 25) {
+                this.raise(this.gameState.current_buy_in - this.ourPlayer.bet + this.gameState.minimum_raise);
+            } else {
+                this.check();
+            }
         }
+
+
     }
 
     public showdown(gameState: IGameState): void {
@@ -128,17 +147,28 @@ export class Player {
     private calculateHandAndCommunityValue(): number {
         let value: number = 0;
         let hand = {
-            isFlush: this.isFlush(this.gameState.community_cards, this.ourPlayer.hole_cards),
-            isStraight: this.isStraight(this.gameState.community_cards)
+            flush: this.isFlush(this.gameState.community_cards, this.ourPlayer.hole_cards),
+            straight: this.isStraight(this.gameState.community_cards, this.ourPlayer.hole_cards),
+            pair: this.isPair(this.gameState.community_cards, this.ourPlayer.hole_cards),
+            twoPair: this.isTwoPair(this.gameState.community_cards, this.ourPlayer.hole_cards),
+            tripple: this.isTripple(this.gameState.community_cards, this.ourPlayer.hole_cards),
+            forOfAKind: this.isForOfAKind(this.gameState.community_cards, this.ourPlayer.hole_cards),
         };
-        return 0;
+
+        value += 90 * hand.flush;
+        value += 80 * hand.forOfAKind;
+        value += 50 * hand.straight;
+        value += 40 * hand.tripple;
+        value += 30 * hand.twoPair;
+        value += 20 * hand.pair;
+
+        return value;
     }
 
-    private isFlush(community_cards: Array<ICard>, hole_cards: Array<ICard>): boolean {
+    private isFlush(community_cards: Array<ICard>, hole_cards: Array<ICard>): number {
         let cardColors = {
             clubs: 0, spades: 0, hearts: 0, diamonds: 0
         };
-        let returnValue: boolean = false;
 
         for (let card of community_cards) {
             cardColors[card.suit] = cardColors[card.suit] + 1;
@@ -148,16 +178,207 @@ export class Player {
         }
 
         for (let cardColor in cardColors) {
-            if (cardColors[cardColor] === 5 || cardColors[cardColor] + (5 - community_cards.length) === 5) {
-                returnValue = true;
-                break;
+            if (cardColors[cardColor] === 5) {
+                return 1;
             }
         }
-        return returnValue;
+
+        var cardsLeft = 5 - community_cards.length;
+
+        // 0%
+        if (cardColors.clubs + cardsLeft < 5 &&
+            cardColors.spades + cardsLeft < 5 &&
+            cardColors.hearts + cardsLeft < 5 &&
+            cardColors.diamonds + cardsLeft < 5
+        ) {
+            return 0;
+        }
+
+        // TODO besser machen
+        return 0.5;
     }
 
-    private isStraight(community_cards: Array<ICard>): boolean {
-        return false;
+    private isStraight(community_cards: Array<ICard>, hole_cards: Array<ICard>): number {
+        var cardsLeft = 5 - community_cards.length;
+
+        var cardValues: number[] = [];
+        for (let i = 0; i < 14; i++) {
+            cardValues[i] = 0;
+        }
+
+        for (let card of community_cards) {
+            let valueForCard = this.getValueForCard(card);
+
+            cardValues[valueForCard]++;
+        }
+        for (let card of hole_cards) {
+            let valueForCard = this.getValueForCard(card);
+
+            cardValues[valueForCard]++;
+        }
+
+        // 100%
+        var row = 0;
+        for (let i = 0; i < cardValues.length; i++) {
+            if (cardValues[i] > 0) {
+                row++;
+                if (row >= 5) {
+                    return 1;
+                }
+            } else {
+                row = 0;
+            }
+        }
+
+        // 0%
+        var row = 0;
+        var gap = 0;
+        for (let i = 0; i < cardValues.length; i++) {
+            if (cardValues[i] > 0) {
+                row++;
+                gap = 0;
+                if (row + cardsLeft >= 5) {
+                    return 0.5;
+                }
+            } else {
+                gap++;
+                if (gap > cardsLeft) {
+                    row = 0;
+                }
+            }
+        }
+
+        return 0;
+    }
+
+    private isPair(community_cards: Array<ICard>, hole_cards: Array<ICard>): number {
+        var cardsLeft = 5 - community_cards.length;
+
+        var cardValues: number[] = [];
+        for (let i = 0; i < 14; i++) {
+            cardValues[i] = 0;
+        }
+
+        for (let card of community_cards) {
+            let valueForCard = this.getValueForCard(card);
+
+            cardValues[valueForCard]++;
+        }
+        for (let card of hole_cards) {
+            let valueForCard = this.getValueForCard(card);
+
+            cardValues[valueForCard]++;
+        }
+
+        // 100%
+        for (let cardValue of cardValues) {
+            if (cardValue >= 2) {
+                return 1;
+            }
+        }
+
+        return cardsLeft > 0 ? 0.5 : 0;
+    }
+
+    private isTwoPair(community_cards: Array<ICard>, hole_cards: Array<ICard>): number {
+        var cardsLeft = 5 - community_cards.length;
+        let pairs = 0;
+
+        var cardValues: number[] = [];
+        for (let i = 0; i < 14; i++) {
+            cardValues[i] = 0;
+        }
+
+        for (let card of community_cards) {
+            let valueForCard = this.getValueForCard(card);
+
+            cardValues[valueForCard]++;
+        }
+        for (let card of hole_cards) {
+            let valueForCard = this.getValueForCard(card);
+
+            cardValues[valueForCard]++;
+        }
+
+        // 100%
+        for (let cardValue of cardValues) {
+            if (cardValue >= 2) {
+                pairs++;
+                if (pairs > 1) {
+                    return 1;
+                }
+            }
+        }
+        if (cardsLeft == 2 && pairs == 1) {
+            return 0.5;
+        }
+        return cardsLeft == 1 && pairs == 1 ? 0.25 : 0;
+    }
+
+    private isTripple(community_cards: Array<ICard>, hole_cards: Array<ICard>) {
+        var cardsLeft = 5 - community_cards.length;
+        let hasPair = false;
+
+        var cardValues: number[] = [];
+        for (let i = 0; i < 14; i++) {
+            cardValues[i] = 0;
+        }
+
+        for (let card of community_cards) {
+            let valueForCard = this.getValueForCard(card);
+
+            cardValues[valueForCard]++;
+        }
+        for (let card of hole_cards) {
+            let valueForCard = this.getValueForCard(card);
+
+            cardValues[valueForCard]++;
+        }
+
+        // 100%
+        for (let cardValue of cardValues) {
+            if (cardValue >= 3) {
+                return 1;
+            }
+            if (cardValue == 2) {
+                hasPair = true;
+            }
+        }
+
+        return cardsLeft > 0 && hasPair ? 0.5 : 0;
+    }
+
+    private isForOfAKind(community_cards: Array<ICard>, hole_cards: Array<ICard>): number {
+        var cardsLeft = 5 - community_cards.length;
+        let hasTripple = false;
+
+        var cardValues: number[] = [];
+        for (let i = 0; i < 14; i++) {
+            cardValues[i] = 0;
+        }
+
+        for (let card of community_cards) {
+            let valueForCard = this.getValueForCard(card);
+
+            cardValues[valueForCard]++;
+        }
+        for (let card of hole_cards) {
+            let valueForCard = this.getValueForCard(card);
+
+            cardValues[valueForCard]++;
+        }
+
+        // 100%
+        for (let cardValue of cardValues) {
+            if (cardValue == 4) {
+                return 1;
+            }
+            if (cardValue == 3) {
+                hasTripple = true;
+            }
+        }
+
+        return cardsLeft > 0 && hasTripple ? 0.25 : 0;
     }
 }
 
