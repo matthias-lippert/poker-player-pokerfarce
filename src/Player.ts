@@ -28,29 +28,29 @@ export class Player {
         // value += 40 * hand.tripple;
         // value += 30 * hand.twoPair;
         // value += 20 * hand.pair;
-        if (this.gameState.community_cards && this.gameState.community_cards.length > 0) {
-            allCardValue = this.calculateHandAndCommunityValue();
-
-            if (allCardValue < 10) {
-                this.fold();
-            } else if (allCardValue < 30) {
-                this.check();
-            } else if (allCardValue >= 90 ) {
-                this.raise(this.ourPlayer.stack);
-            } else {
-                this.raise(this.gameState.current_buy_in - this.ourPlayer.bet + this.gameState.minimum_raise);
-            }
+        // if (this.gameState.community_cards && this.gameState.community_cards.length > 0) {
+        //     allCardValue = this.calculateHandAndCommunityValue();
+        //
+        //     if (allCardValue < 10) {
+        //         this.fold();
+        //     } else if (allCardValue < 30) {
+        //         this.check();
+        //     } else if (allCardValue >= 90 ) {
+        //         this.raise(this.ourPlayer.stack);
+        //     } else {
+        //         this.raise(this.gameState.current_buy_in - this.ourPlayer.bet + this.gameState.minimum_raise);
+        //     }
+        // } else {
+        if (cardValue <= 10) {
+            this.fold();
+        } else if (cardValue >= 40) {
+            this.raise(Math.min(200, this.ourPlayer.stack));
+        } else if (cardValue >= 25) {
+            this.raise(this.gameState.current_buy_in - this.ourPlayer.bet + this.gameState.minimum_raise);
         } else {
-            if (cardValue <= 10) {
-                this.fold();
-            } else if (cardValue >= 40) {
-                this.raise(Math.min(200, this.ourPlayer.stack));
-            } else if (cardValue >= 25) {
-                this.raise(this.gameState.current_buy_in - this.ourPlayer.bet + this.gameState.minimum_raise);
-            } else {
-                this.check();
-            }
+            this.check();
         }
+        // }
 
 
     }
