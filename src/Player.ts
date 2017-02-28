@@ -3,7 +3,7 @@ export class Player {
     private ourPlayer: IPlayer;
     private handValues: number;
     private betCallback: Function;
-    private gameState:IGameState;
+    private gameState: IGameState;
 
     public betRequest(gameState: IGameState, betCallback: (bet: number) => void): void {
 
@@ -50,7 +50,7 @@ export class Player {
         let value: number = 0;
         let handColor = "";
         for (let card of cards) {
-            if (handColor === "")  {
+            if (handColor === "") {
                 handColor = card.suit;
             } else {
                 if (handColor === card.suit) {
@@ -69,30 +69,55 @@ export class Player {
         return value;
     }
 
+    private getValueForCard(card: ICard): number {
+        let value: number;
+        switch (card) {
+            case "J":
+                value = 10;
+                break;
+            case "Q":
+                value = 11;
+                break;
+            case "K":
+                value = 12;
+                break;
+            case "A":
+                value = 13;
+                break;
+            default:
+                value = parseInt(<any>card.rank) - 1;
+        }
+        return value;
+    }
+
+    private getValueForFollow(cards: Array<ICard>): number {
+        let valueOfCardOne = this.getValueForCard(cards[0].rank);
+        let valueOfCardTwo = this.getValueForCard(cards[1].rank);
+
+        let value: number = 0;
+        let diff = Math.abs(valueOfCardOne - valueOfCardTwo);
+        if (diff == 1) {
+            value = 5;
+        } else if (diff == 2) {
+            value = 3
+        }
+        return value;
+    }
+
     private calculateHandValue() {
         let handValue = 0;
         // clubs,spades,hearts,diamonds
         for (let card of this.ourPlayer.hole_cards) {
-            switch (card) {
-                case "J":
-                    handValue += 10;
-                    break;
-                case "Q":
-                    handValue += 11;
-                    break;
-                case "K":
-                    handValue += 12;
-                    break;
-                case "A":
-                    handValue += 15;
-                    break;
-                default:
-                    handValue += parseInt(<any>card.rank) - 1;
-            }
+            let currValue: number = this.getValueForCard(card);
+            // wenn Ass
+            if (currValue === 13) currValue += 2;
+
+            handValue += currValue
         }
 
         handValue += this.getValueByColor(this.ourPlayer.hole_cards);
         handValue += this.getValueByPair(this.ourPlayer.hole_cards);
+        handValue += this.getValueForFollow(this.ourPlayer.hole_cards);
 
         return handValue;
     }
