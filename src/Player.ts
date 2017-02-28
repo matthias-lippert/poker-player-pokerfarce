@@ -10,13 +10,17 @@ export class Player {
         this.betCallback = betCallback;
         this.gameState = gameState;
 
-        this.ourPlayer = this.getOurPlayer(gameState.players);
+        this.ourPlayer = this.getOurPlayer();
         this.handValues = this.calculateHandValue();
 
+        this.play();
+    }
+
+    play() {
         if (this.handValues <= 10) {
             this.fold();
         } else if (this.handValues >= 25) {
-            this.raise(gameState.minimum_raise);
+            this.raise(this.gameState.minimum_raise);
         } else {
             this.check();
         }
@@ -38,14 +42,15 @@ export class Player {
         this.betCallback(0)
     }
 
-    private getOurPlayer(players: Array<IPlayer>): IPlayer {
-        return players.filter((player: IPlayer) => {
-            if (player.hole_cards && player.hole_cards.length > 0) {
-                return true;
-            } else {
-                return false;
-            }
-        })
+    private getOurPlayer(): IPlayer {
+        return this.gameState.players[this.gameState.in_action];
+        // return players.filter((player: IPlayer) => {
+        //     if (player.hole_cards && player.hole_cards.length > 0) {
+        //         return true;
+        //     } else {
+        //         return false;
+        //     }
+        // })
     }
 
     private calculateHandValue() {
